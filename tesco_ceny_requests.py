@@ -85,9 +85,9 @@ def extractor(groceries):
 		# link na img nepotrebujem evidovat, ten si vyskladam z cat a ean
 		link_to_image = t.find('img', {'class': 'product-image'})['src']
 
-		#											   cat		ean
-		#												|		 |
-		#												V		 V
+		#						cat	ean
+		#						|	|
+		#						V	V
 		# "https://secure.ce-tescoassets.com/assets/SK/030/0000031429030/ShotType1_225x225.jpg"
 
 		sub_folder = link_to_image.split('/')[5]
