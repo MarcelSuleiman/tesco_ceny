@@ -83,6 +83,7 @@ def extractor(groceries):
 				price_per_unit = price_per_unit.split(' ')[0]
 
 			if len(price_per_si.split(' ')) > 2:
+				price_per_si = ''
 				d = price_per_si.split(' ')
 				for val in range(len(d)-1):
 
