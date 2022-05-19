@@ -1,4 +1,4 @@
-# Reči sa hovoria, chleba sa je. Ale za peniaze nakúpiš. Slobodná Európa
+# Reči sa hovoria, chleba sa je. Ale za peniaze nakúpiš. Slobodna Europa
 
 import requests
 import time
@@ -21,10 +21,6 @@ def wrong_code(url, headers, error_name = '', error_message = ''):
 	time.sleep(600)
 
 def get_new_header():
-	"""
-	Funkcia get_new_header generuje novu nahodnu hlavicku pre request
-	vracia slovnik
-	"""
 	ua = UserAgent()
 	header = ua.random
 
@@ -44,26 +40,62 @@ def extractor(groceries):
 		# ak sa jedna o polozku ako jablka, banany, oriesky, paprika a ine volne tovary,
 		# nema zmysel si evidovat cenu 1 bananu - 1 standardizovaneho bananu
 		# niektore veci vnimame automaticky na kila, metre, litre
-		if t.find_all('span')[4].text == 'Množstvo':
-			price_per_unit = price_per_si = t.find_all('span', {'data-auto': 'price-value'})[1].text
-		else:
-			price_per_unit = t.find_all('span', {'data-auto': 'price-value'})[0].text
-			price_per_si = t.find_all('span', {'data-auto': 'price-value'})[1].text
+		#
+		# POZOR od 02/02/2022 zmena span 3 nie 4
+
+		# POZOR 18/05/2022 zmena sablony
+
+
+
+		# if t.find_all('span')[3].text == 'Množstvo':
+		try:
+			if t.find_all('span', {'class': 'styled__StyledLabel-sc-1ttuvhr-0 hPDfsf beans-radio-button-with-label__label beans-label'})[0].text == 'Množstvo':
+				price_per_unit = price_per_si = t.find_all('p', {'class': 'styled__StyledFootnote-sc-119w3hf-7 icrlVF styled__Subtext-sc-8qlq5b-2 bNJmdc beans-price__subtext'})[0].text
+		except IndexError:
+			try:
+				price_per_unit = t.find_all('p', {'class': 'styled__StyledHeading-sc-119w3hf-2 jWPEtj styled__Text-sc-8qlq5b-1 lnaeiZ beans-price__text'})[0].text
+				price_per_si = t.find_all('p', {'class': 'styled__StyledFootnote-sc-119w3hf-7 icrlVF styled__Subtext-sc-8qlq5b-2 bNJmdc beans-price__subtext'})[0].text
+
+			except IndexError:
+				print(name)
+				continue
+
+
 
 		# MJ
-		unit_of_quantity = t.find('span', {'class': 'weight'}).text.replace('/', '')
+		# unit_of_quantity = t.find('span', {'class': 'weight'}).text.replace('/', '')
 
-		# v zlave?
-		'''
-		# heh, jeden sí šarpista po 7 pive: No vy pytonaci, vsetko natrepete do try a zivot gombicka
 		try:
-			discount = t.find('span', {'class':'offer-text'}).text
-		except AttributeError:
-			discount = ''
-		'''
+			unit_of_quantity = price_per_si.split(' ')[-1].split('/')[1]
+		except:
+			unit_of_quantity = 'NaN'
 
-		# ma vsak nejaky zmysel to spravit bez 'try'?
-		# tak, nech je spokojny
+
+		try:
+
+			if len(price_per_unit.split(' ')) > 2:
+				d = price_per_unit.split(' ')
+				for val in range(len(d)-1):
+
+					price_per_unit += str(d[val])
+
+			else:
+				price_per_unit = price_per_unit.split(' ')[0]
+
+			if len(price_per_si.split(' ')) > 2:
+				d = price_per_si.split(' ')
+				for val in range(len(d)-1):
+
+					price_per_si += str(d[val])
+
+			else:
+				price_per_si = price_per_si.split(' ')[0]
+			
+			print(price_per_unit, price_per_si)
+		except:
+			continue
+
+
 		if t.find('span', {'class': 'offer-text'}) != None:
 			discount = t.find('span', {'class': 'offer-text'}).text
 			discount_splitted = discount.split(', ')
@@ -85,9 +117,9 @@ def extractor(groceries):
 		# link na img nepotrebujem evidovat, ten si vyskladam z cat a ean
 		link_to_image = t.find('img', {'class': 'product-image'})['src']
 
-		#						cat	ean
-		#						|	|
-		#						V	V
+		#											   cat		ean
+		#												|		 |
+		#												V		 V
 		# "https://secure.ce-tescoassets.com/assets/SK/030/0000031429030/ShotType1_225x225.jpg"
 
 		sub_folder = link_to_image.split('/')[5]
@@ -153,6 +185,8 @@ for category in categories:
 	for page in range(1, number_of_pages + 1):
 		# parsuj parsuj vykrucaj
 
+		time.sleep(5)
+
 		headers = get_new_header()
 		url = 'https://potravinydomov.itesco.sk/groceries/sk-SK/shop/' + category + '/all?page=' + str(page) +'&count=48'
 
@@ -165,6 +199,7 @@ for category in categories:
 		except Exception as E:
 			print(str(E))
 			wrong_code(E.__class__.__name__, str(E))
+			page -= 1
 
 		soup = BeautifulSoup(r.content, 'html.parser')
 
