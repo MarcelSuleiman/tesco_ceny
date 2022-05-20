@@ -7,7 +7,7 @@ import math
 from fake_useragent import UserAgent
 from bs4 import BeautifulSoup
 
-def wrong_code(url, headers, error_name = '', error_message = ''):
+def wrong_code(url:str, headers:dict, error_name = '', error_message = '') -> None:
 
 	if error_name != '':
 		error_line = f'{url}, {headers}\n{error_name}: {error_message}\n'
@@ -24,9 +24,9 @@ def get_new_header():
 	ua = UserAgent()
 	header = ua.random
 
-	return {'User-Agent': '{header}'}
+	return {'User-Agent': f'{header}'}
 
-def extractor(groceries):
+def extractor(groceries: list) -> None:
 	"""
 	Funkcia extractor prijma ako parameter blok html kodu z bs4 
 	a z neho vybera jednotlive udaje
@@ -45,8 +45,6 @@ def extractor(groceries):
 
 		# POZOR 18/05/2022 zmena sablony
 
-
-
 		# if t.find_all('span')[3].text == 'Množstvo':
 		try:
 			if t.find_all('span', {'class': 'styled__StyledLabel-sc-1ttuvhr-0 hPDfsf beans-radio-button-with-label__label beans-label'})[0].text == 'Množstvo':
@@ -60,41 +58,23 @@ def extractor(groceries):
 				print(name)
 				continue
 
-
-
 		# MJ
-		# unit_of_quantity = t.find('span', {'class': 'weight'}).text.replace('/', '')
-
 		try:
-			unit_of_quantity = price_per_si.split(' ')[-1].split('/')[1]
+			unit_of_quantity = price_per_si.split(' €/')[-1]
 		except:
 			unit_of_quantity = 'NaN'
 
-
-		try:
-
-			if len(price_per_unit.split(' ')) > 2:
-				d = price_per_unit.split(' ')
-				for val in range(len(d)-1):
-
-					price_per_unit += str(d[val])
-
-			else:
-				price_per_unit = price_per_unit.split(' ')[0]
-
-			if len(price_per_si.split(' ')) > 2:
-				price_per_si = ''
-				d = price_per_si.split(' ')
-				for val in range(len(d)-1):
-
-					price_per_si += str(d[val])
-
-			else:
-				price_per_si = price_per_si.split(' ')[0]
-			
-			print(price_per_unit, price_per_si)
+		# Cena za balenie
+		try:	
+			price_per_unit = price_per_unit.split(' ')[0].replace(' ', '')
 		except:
-			continue
+			price_per_unit = 'NaN'
+
+		# cena za MJ
+		try:
+			price_per_si = price_per_si.split(' €/')[0].replace(' ', '')
+		except:
+			price_per_si = 'NaN'
 
 
 		if t.find('span', {'class': 'offer-text'}) != None:
@@ -118,9 +98,9 @@ def extractor(groceries):
 		# link na img nepotrebujem evidovat, ten si vyskladam z cat a ean
 		link_to_image = t.find('img', {'class': 'product-image'})['src']
 
-		#											   cat		ean
-		#												|		 |
-		#												V		 V
+		#						cat	ean
+		#						|	 |
+		#						V	 V
 		# "https://secure.ce-tescoassets.com/assets/SK/030/0000031429030/ShotType1_225x225.jpg"
 
 		sub_folder = link_to_image.split('/')[5]
@@ -131,26 +111,12 @@ def extractor(groceries):
 		row = '"{}";"{}";"{}";"{}";"{}";"{}";"{}";"{}";"{}";"{}";\n'.format(name, price_per_unit, price_per_si, unit_of_quantity, discount_percentage, old_price, category, plu, sub_folder, ean)
 
 		file1.write(row)
-		file1.flush()
-		
-# stalo by za zvazenie kategorie rozdelit na podkategorie
-# 'ovocie-a-zelenina' -- Ovocie -- Jablka a hrusky
-#								-- kostkoviny
-#								-- ...
-#					  -- Zelenina -- Hlubova zelenina
-#								  -- kapusta a kel
-#								  -- ...
-#
-#	lenze to by bolo o dost viac requestov -> dlhsie by bezal skript
-#	no na druhu stranu, lepsie by sa filtrovali sekcie a podsekcie a tak
-#
-#	co ak podsekcia pribudne a niektore polozky sa presunu, alebo zrusia podsekciu
-#	
+		file1.flush()	
 
 categories = ['ovocie-a-zelenina', 'mliecne-vyrobky-a-vajcia', 'pecivo', 'maso-ryby-a-lahodky',
-			'trvanlive-potraviny', 'specialna-a-zdrava-vyziva','mrazene-potraviny',
-			'napoje', 'alkohol', 'starostlivost-o-domacnost', 'zdravie-a-krasa',
-			'starostlivost-o-dieta', 'chovateske-potreby','domov-a-zabava']
+		'trvanlive-potraviny', 'specialna-a-zdrava-vyziva','mrazene-potraviny',
+		'napoje', 'alkohol', 'starostlivost-o-domacnost', 'zdravie-a-krasa',
+		'starostlivost-o-dieta', 'chovateske-potreby','domov-a-zabava']
 
 for category in categories:
 
