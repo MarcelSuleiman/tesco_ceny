@@ -24,7 +24,7 @@ def get_new_header():
 	ua = UserAgent()
 	header = ua.random
 
-	return {'User-Agent': f'{header}'}
+	return {'User-Agent': '{header}'}
 
 def extractor(groceries: list) -> None:
 	"""
